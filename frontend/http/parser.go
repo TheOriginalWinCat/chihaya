@@ -64,11 +64,10 @@ func ParseAnnounce(r *http.Request, realIPHeader string, allowIPSpoofing bool, d
 
 	numwant, err := qp.Uint64("numwant")
 	if err != nil {
-		if err == bittorrent.ErrKeyNotFound && defaultNumWant > 0 {
-			request.NumWant = defaultNumWant
-		} else {
+		if err != bittorrent.ErrKeyNotFound && defaultNumWant == 0 {
 			return nil, bittorrent.ClientError("failed to parse parameter: numwant")
 		}
+		request.NumWant = defaultNumWant
 	} else {
 		request.NumWant = uint32(numwant)
 	}
