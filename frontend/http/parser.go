@@ -12,7 +12,7 @@ import (
 // If allowIPSpoofing is true, IPs provided via params will be used.
 // If realIPHeader is not empty string, the first value of the HTTP Header with
 // that name will be used.
-func ParseAnnounce(r *http.Request, realIPHeader string, allowIPSpoofing bool) (*bittorrent.AnnounceRequest, error) {
+func ParseAnnounce(r *http.Request, realIPHeader string, allowIPSpoofing bool, defaultNumWant uint32) (*bittorrent.AnnounceRequest, error) {
 	qp, err := bittorrent.ParseURLData(r.RequestURI)
 	if err != nil {
 		return nil, err
@@ -64,9 +64,14 @@ func ParseAnnounce(r *http.Request, realIPHeader string, allowIPSpoofing bool) (
 
 	numwant, err := qp.Uint64("numwant")
 	if err != nil {
-		return nil, bittorrent.ClientError("failed to parse parameter: numwant")
+		if err == bittorrent.ErrKeyNotFound && defaultNumWant > 0 {
+			request.NumWant = defaultNumWant
+		} else {
+			return nil, bittorrent.ClientError("failed to parse parameter: numwant")
+		}
+	} else {
+		request.NumWant = uint32(numwant)
 	}
-	request.NumWant = uint32(numwant)
 
 	port, err := qp.Uint64("port")
 	if err != nil {

@@ -70,6 +70,7 @@ type Config struct {
 	RealIPHeader    string        `yaml:"real_ip_header"`
 	TLSCertPath     string        `yaml:"tls_cert_path"`
 	TLSKeyPath      string        `yaml:"tls_key_path"`
+	DefaultNumWant  uint32        `yaml:"default_numwant"`
 }
 
 // Frontend holds the state of an HTTP BitTorrent Frontend.
@@ -159,7 +160,7 @@ func (t *Frontend) announceRoute(w http.ResponseWriter, r *http.Request, _ httpr
 	var af *bittorrent.AddressFamily
 	defer func() { recordResponseDuration("announce", af, err, time.Since(start)) }()
 
-	req, err := ParseAnnounce(r, t.RealIPHeader, t.AllowIPSpoofing)
+	req, err := ParseAnnounce(r, t.RealIPHeader, t.AllowIPSpoofing, t.DefaultNumWant)
 	if err != nil {
 		WriteError(w, err)
 		return
